@@ -10,9 +10,12 @@ editor_options:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+# Set so that long lines in R will be wrapped:
+knitr::opts_chunk$set(tidy.opts=list(width.cutoff=80), tidy=TRUE)
 ```
 
-```{r}
+```{r,echo=FALSE, warning=FALSE, message=FALSE}
+library(formatR)
 library(mosaic)
 library(matrixStats)
 library(qvalue)
@@ -102,6 +105,7 @@ t.test(pois1)
 
 ```{r}
 #Bootstrapping is when we don't know the population parameter (Lambda in this example).So we take samples from the observations (pois1) until we have sample size of the original sample (n=30) and compute the 95% CI for these new samples.
+
 set.seed(100)
 pois1= do(1000) * mean(rpois(30,lambda=5))
 boot_samples = do(1000)*sample(pois1,30,replace=T)
