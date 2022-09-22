@@ -54,6 +54,10 @@ population parameters were  $\sigma=70$ and $n=6$. How does the estimate from th
 `data=matrix(rnorm(6000,mean=200,sd=70),ncol=6)`? [Difficulty: **Beginner/Intermediate**] 
 
 ```{r}
+gset=rnorm(600,mean=200,sd=70)
+data=matrix(gset,ncol=6)
+row_means=rowMeans(data)
+
 means_sd = sd(row_means)
 ctl_sd=70/sqrt(6)
 
@@ -98,6 +102,8 @@ t.test(pois1)
 
 ```{r}
 #Bootstrapping is when we don't know the population parameter (Lambda in this example).So we take samples from the observations (pois1) until we have sample size of the original sample (n=30) and compute the 95% CI for these new samples.
+set.seed(100)
+pois1= do(1000) * mean(rpois(30,lambda=5))
 boot_samples = do(1000)*sample(pois1,30,replace=T)
 quantile(boot_samples[,1],p=c(0.025,0.975))
 
@@ -286,75 +292,65 @@ sigma = 20
 eps = rnorm(50,0,sigma)
 # get y values from the linear equation and addition of error terms
 y = b0 + b1*x+ eps
-```
 
 
-1. Run the code then fit a line to predict Y based on X. [Difficulty:**Intermediate**] 
 
-```{r}
+# 1. Run the code then fit a line to predict Y based on X. [Difficulty:**Intermediate**] 
+
 model = lm(y ~ x)
 summary(model)
-```
 
 
-2. Plot the scatter plot and the fitted line. [Difficulty:**Intermediate**] 
 
-```{r}
+# 2. Plot the scatter plot and the fitted line. [Difficulty:**Intermediate**] 
+
 plot(x,y)
 abline(model,col="red")
-```
 
-3. Calculate correlation and R^2. [Difficulty:**Intermediate**] 
 
-```{r}
+# 3. Calculate correlation and R^2. [Difficulty:**Intermediate**] 
+
 corr = cor(x,y)
 r_sqr=corr^2
-```
 
-4. Run the `summary()` function and 
-try to extract P-values for the model from the object
-returned by `summary`. See `?summary.lm`. [Difficulty:**Intermediate/Advanced**] 
 
-```{r}
+# 4. Run the `summary()` function and 
+#try to extract P-values for the model from the object
+#returned by `summary`. See `?summary.lm`. [Difficulty:**Intermediate/Advanced**] 
+
 model_summary = summary(model)
 model_summary
-```
-
-5. Plot the residuals vs. the fitted values plot, by calling the `plot()` 
-function with `which=1` as the second argument. First argument
-is the model returned by `lm()`. [Difficulty:**Advanced**] 
 
 
-```{r}
+# 5. Plot the residuals vs. the fitted values plot, by calling the `plot()` 
+#function with `which=1` as the second argument. First argument
+#is the model returned by `lm()`. [Difficulty:**Advanced**] 
+
 plot(lm(y~x),which = 1)
-```
 
-6. For the next exercises, read the data set histone modification data set. Use the following to get the path to the file:
-```{r}
+
+# 6. For the next exercises, read the data set histone modification data set. Use the following to get the path to the file:
+
 hmodFile=system.file("extdata",
                     "HistoneModeVSgeneExp.rds",
                      package="compGenomRData")
-```
-There are 3 columns in the dataset. These are measured levels of H3K4me3,
-H3K27me3 and gene expression per gene. Once you read in the data, plot the scatter plot for H3K4me3 vs. expression. [Difficulty:**Beginner**] 
 
-```{r}
+# There are 3 columns in the dataset. These are measured levels of H3K4me3,
+# H3K27me3 and gene expression per gene. Once you read in the data, plot the scatter plot for H3K4me3 vs. expression. [Difficulty:**Beginner**] 
+
 histone_data=readRDS(hmodFile)
 plot(histone_data$H3k4me3, histone_data$measured_log2, xlab = "Measured levels of H3K4me3", ylab= " Gene Expression")
 
-```
 
-7. Plot the scatter plot for H3K27me3 vs. expression. [Difficulty:**Beginner**] 
 
-```{r}
+# 7. Plot the scatter plot for H3K27me3 vs. expression. [Difficulty:**Beginner**] 
 
 plot(histone_data$H3k27me3, histone_data$measured_log2, xlab = "Measured levels of H3k27me3", ylab= " Gene Expression")
 
-```
 
-8. Fit the model for prediction of expression data using: 1) Only H3K4me3 as explanatory variable, 2) Only H3K27me3 as explanatory variable, and 3) Using both H3K4me3 and H3K27me3 as explanatory variables. Inspect the `summary()` function output in each case, which terms are significant. [Difficulty:**Beginner/Intermediate**] 
 
-```{r}
+# 8. Fit the model for prediction of expression data using: 1) Only H3K4me3 as explanatory variable, 2) Only H3K27me3 as explanatory variable, and 3) Using both H3K4me3 and H3K27me3 as explanatory variables. Inspect the `summary()` function output in each case, which terms are significant. [Difficulty:**Beginner/Intermediate**] 
+
 fit1 = lm(histone_data$measured_log2 ~ histone_data$H3k4me3)
 fit2 = lm(histone_data$measured_log2 ~ histone_data$H3k27me3)
 fit3 = lm(histone_data$measured_log2 ~ histone_data$H3k4me3 + histone_data$H3k27me3)
@@ -364,12 +360,12 @@ summary(fit2)
 summary(fit3)
 
 #All terms are significant
-```
 
 
-10. Is using H3K4me3 and H3K27me3 better than the model with only H3K4me3? [Difficulty:**Intermediate**] 
 
-```{r}
+# 10. Is using H3K4me3 and H3K27me3 better than the model with only H3K4me3? [Difficulty:**Intermediate**] 
+
 #Comparing R-squared values, which is: R-squared = Explained variation / Total variation. So higher R-squared value is better, as it means that the model can explain most of the variance in the data. Using both H3K4me3 and H3K27me3 together slightly increased the R-squared ( from .6511 to .6723). Anova could be used here as we have 2 categorical variables to compare the models.
+
 ```
 
