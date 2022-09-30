@@ -1,0 +1,236 @@
+---
+title: 'compgen2021: Week 2 exercises'
+author: 'Irem YUCEL'
+output:
+  pdf_document: default
+  pdf: default
+editor_options: 
+  chunk_output_type: console
+  markdown: 
+    wrap: 72
+---
+
+# Exercises for Week2
+
+For this set of exercises we will be using the expression data shown
+below:
+
+```{r dataLoadClu,eval=FALSE}
+library(pheatmap)
+library(cluster)
+
+expFile=system.file("extdata",
+                    "leukemiaExpressionSubset.rds",
+                    package="compGenomRData")
+mat=readRDS(expFile)
+
+annotation_col = data.frame(
+                    LeukemiaType =substr(colnames(mat),1,3))
+rownames(annotation_col)=colnames(mat)
+
+```
+
+### Clustering
+
+1.  We want to observe the effect of data transformation in this
+    exercise. Scale the expression matrix with the `scale()` function.
+    In addition, try taking the logarithm of the data with the `log2()`
+    function prior to scaling. Make box plots of the unscaled and scaled
+    data sets using the `boxplot()` function. [Difficulty:
+    **Beginner/Intermediate**]
+
+**solution:** put your text here
+
+```{r,echo=TRUE,eval=TRUE}
+#Log Transform and scale
+scaled_mat <- scale(mat)
+
+mat_log2 <- log2(mat+1)  
+mat_log2 
+
+scaled_mat_log2 <- scale(mat_log2)
+
+par(mfrow=c(1,2))
+
+boxplot(mat,
+        main="Before scaling",
+        xlab="Sample",
+        ylab="Expression Fold",
+        col='red',
+        outline = FALSE)
+boxplot(scaled_mat_log2,
+        main="After scaling",
+        xlab="Sample",
+        ylab="Expression Fold",
+        col='blue',
+        outline = FALSE)
+
+```
+
+2.  For the same problem above using the unscaled data and different
+    data transformation strategies, use the `ward.d` distance in
+    hierarchical clustering and plot multiple heatmaps. You can try to
+    use the `pheatmap` library or any other library that can plot a
+    heatmap with a dendrogram. Which data-scaling strategy provides more
+    homogeneous clusters with respect to disease types? [Difficulty:
+    **Beginner/Intermediate**]
+
+**solution:** Heatmaps after scaling have more homogeneous clusters with
+respect to disease types. Applying the log transform with out scaling
+seems to be the worst in terms of cluster homogeneity
+
+```{r,echo=TRUE,eval=TRUE}
+
+par(mfrow=c(2,2))
+pheatmap(mat,
+         main="mat",
+         show_rownames=F,
+         show_colnames=F,
+         annotation_col=annotation_col,
+         scale = "none",
+         clustering_method="ward.D2",
+         clustering_distance_cols="euclidean")
+pheatmap(mat_log2,
+         main="mat_log2",
+         show_rownames=F,
+         show_colnames=F,
+         annotation_col=annotation_col,
+         scale = "none",
+         clustering_method="ward.D2",
+         clustering_distance_cols="euclidean")
+pheatmap(scaled_mat,
+         main="scaled_mat",
+         show_rownames=F,
+         show_colnames=F,
+         annotation_col=annotation_col,
+         scale = "none",
+         clustering_method="ward.D2",
+         clustering_distance_cols="euclidean")
+pheatmap(scaled_mat_log2,
+         main="scaled_mat_log2",
+         show_rownames=F,
+         show_colnames=F,
+         annotation_col=annotation_col,
+         scale = "none",
+         clustering_method="ward.D2",
+         clustering_distance_cols="euclidean")
+ 
+```
+
+3.  For the transformed and untransformed data sets used in the exercise
+    above, use the silhouette for deciding number of clusters using
+    hierarchical clustering. [Difficulty: **Intermediate/Advanced**]
+
+**solution:** For each of the data sets, k = 4 seems the best number of
+clusters.
+
+```{r,echo=TRUE,eval=TRUE}
+
+Ks=sapply(2:7,
+    function(i) 
+      summary(silhouette(pam(t(mat),k=i)))$avg.width)
+plot(2:7,Ks,xlab="k",ylab="av. silhouette",type="b",pch=19)
+
+Ks=sapply(2:7,
+    function(i) 
+      summary(silhouette(pam(t(mat_log2),k=i)))$avg.width)
+plot(2:7,Ks,xlab="k",ylab="av. silhouette",type="b",pch=19)
+
+Ks=sapply(2:7,
+    function(i) 
+      summary(silhouette(pam(t(scaled_mat),k=i)))$avg.width)
+plot(2:7,Ks,xlab="k",ylab="av. silhouette",type="b",pch=19)
+
+Ks=sapply(2:7,
+    function(i) 
+      summary(silhouette(pam(t(scaled_mat_log2),k=i)))$avg.width)
+plot(2:7,Ks,xlab="k",ylab="av. silhouette",type="b",pch=19)
+```
+
+4.  Now, use the Gap Statistic for deciding the number of clusters in
+    hierarchical clustering. Is the same number of clusters identified
+    by two methods? Is it similar to the number of clusters obtained
+    using the k-means algorithm in the unsupervised learning chapter.
+    [Difficulty: **Intermediate/Advanced**]
+
+**solution:** The number of clusters identified are different in 2 methods. It is 8 in Hierarchial 
+
+```{r,echo=TRUE,eval=TRUE}
+
+# define the clustering function
+hclu <- function(x,k) {
+  d=dist(x,method = "euclidean")
+  hcl=hclust(d,method="ward.D")
+  clu.k=cutree(hcl,k=k) 
+  list(cluster = clu.k)
+}
+
+par(mfrow=c(1,1))
+# calculate the gap statistic for scaled and unscaled data
+hclu.gap= clusGap(t(mat_log2), FUN = hclu, K.max = 8,B=50)
+
+# plot the gap statistic accross k values
+plot(hclu.gap, main = "Gap statistic for the 'Leukemia' data - Unscaled")
+
+# calculate the gap statistic for scaled and unscaled data
+scaled.hclu.gap= clusGap(scaled_mat_log2, FUN = hclu, K.max = 8,B=50)
+
+# plot the gap statistic accross k values
+plot(scaled.hclu.gap, main = "Gap statistic for the 'Leukemia' data - Scaled")
+
+```
+
+### Dimension reduction
+
+We will be using the leukemia expression data set again. You can use it
+as shown in the clustering exercises.
+
+1.  Do PCA on the expression matrix using the `princomp()` function and
+    then use the `screeplot()` function to visualize the explained
+    variation by eigenvectors. How many top components explain 95% of
+    the variation? [Difficulty: **Beginner**]
+
+**solution:** put your text here
+
+```{r,echo=TRUE,eval=TRUE}
+# FILL IN HERE
+ 
+```
+
+2.  Our next tasks are removing the eigenvectors and reconstructing the
+    matrix using SVD, then we need to calculate the reconstruction error
+    as the difference between the original and the reconstructed matrix.
+    HINT: You have to use the `svd()` function and equalize eigenvalue
+    to $0$ for the component you want to remove. [Difficulty:
+    **Intermediate/Advanced**]
+
+**solution:** put your text here
+
+```{r,echo=TRUE,eval=TRUE}
+# FILL IN HERE
+ 
+```
+
+3.  Produce a 10-component ICA from the expression data set. Remove each
+    component and measure the reconstruction error without that
+    component. Rank the components by decreasing reconstruction-error.
+    [Difficulty: **Advanced**]
+
+**solution:** put your text here
+
+```{r,echo=TRUE,eval=TRUE}
+# FILL IN HERE
+ 
+```
+
+4.  In this exercise we use the `Rtsne()` function on the leukemia
+    expression data set. Try to increase and decrease perplexity t-sne,
+    and describe the observed changes in 2D plots. [Difficulty:
+    **Beginner**]
+
+**solution:** put your text here
+
+```{r,echo=TRUE,eval=TRUE}
+# FILL IN HERE
+ 
+```
