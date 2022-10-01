@@ -16,10 +16,6 @@ For this set of exercises we will be using the expression data shown
 below:
 
 ```{r dataLoadClu,eval=FALSE}
-library(pheatmap)
-library(cluster)
-library(fastICA)
-library(Rtsne)
 
 expFile=system.file("extdata",
                     "leukemiaExpressionSubset.rds",
@@ -45,10 +41,18 @@ rownames(annotation_col)=colnames(mat)
 
 ```{r,echo=TRUE,eval=TRUE}
 #Log Transform and scale
+expFile=system.file("extdata",
+                    "leukemiaExpressionSubset.rds",
+                    package="compGenomRData")
+mat=readRDS(expFile)
+
+annotation_col = data.frame(
+                    LeukemiaType =substr(colnames(mat),1,3))
+rownames(annotation_col)=colnames(mat)
+
 scaled_mat <- scale(mat)
 
 mat_log2 <- log2(mat+1)  
-mat_log2 
 
 scaled_mat_log2 <- scale(mat_log2)
 
@@ -82,6 +86,16 @@ respect to disease types. Applying the log transform with out scaling
 seems to be the worst in terms of cluster homogeneity
 
 ```{r,echo=TRUE,eval=TRUE}
+library(pheatmap)
+
+expFile=system.file("extdata",
+                    "leukemiaExpressionSubset.rds",
+                    package="compGenomRData")
+mat=readRDS(expFile)
+
+annotation_col = data.frame(
+                    LeukemiaType =substr(colnames(mat),1,3))
+rownames(annotation_col)=colnames(mat)
 
 par(mfrow=c(2,2))
 pheatmap(mat,
@@ -127,6 +141,15 @@ pheatmap(scaled_mat_log2,
 clusters.
 
 ```{r,echo=TRUE,eval=TRUE}
+library(cluster)
+expFile=system.file("extdata",
+                    "leukemiaExpressionSubset.rds",
+                    package="compGenomRData")
+mat=readRDS(expFile)
+
+annotation_col = data.frame(
+                    LeukemiaType =substr(colnames(mat),1,3))
+rownames(annotation_col)=colnames(mat)
 
 Ks=sapply(2:7,
     function(i) 
@@ -158,6 +181,15 @@ plot(2:7,Ks,xlab="k",ylab="av. silhouette",type="b",pch=19)
 **solution:** The number of clusters identified are different in 2 methods. It is 8 in Hierarchial 
 
 ```{r,echo=TRUE,eval=TRUE}
+expFile=system.file("extdata",
+                    "leukemiaExpressionSubset.rds",
+                    package="compGenomRData")
+
+mat=readRDS(expFile)
+
+annotation_col = data.frame(
+                    LeukemiaType =substr(colnames(mat),1,3))
+rownames(annotation_col)=colnames(mat)
 
 # define the clustering function
 hclu <- function(x,k) {
@@ -195,6 +227,15 @@ as shown in the clustering exercises.
 **solution:** First 25 components explain 95.57% of the variation
 
 ```{r,echo=TRUE,eval=TRUE}
+expFile=system.file("extdata",
+                    "leukemiaExpressionSubset.rds",
+                    package="compGenomRData")
+
+mat=readRDS(expFile)
+
+annotation_col = data.frame(
+                    LeukemiaType =substr(colnames(mat),1,3))
+rownames(annotation_col)=colnames(mat)
 
 pr = princomp(scale(mat))
 screeplot(pr,
@@ -214,6 +255,15 @@ summary(pr)
 
 
 ```{r,echo=TRUE,eval=TRUE}
+expFile=system.file("extdata",
+                    "leukemiaExpressionSubset.rds",
+                    package="compGenomRData")
+
+mat=readRDS(expFile)
+
+annotation_col = data.frame(
+                    LeukemiaType =substr(colnames(mat),1,3))
+rownames(annotation_col)=colnames(mat)
 
 svd_mat=svd(scale(mat)) #Take SVD
 S =  diag(svd_mat$d) # S the diagonal matrix
@@ -240,6 +290,16 @@ e = mat_reconstruct2 - mat_reconstruct
 **solution:** Removing the component 5 resulted the highest reconstruction error. The ranks is 5  9  8  3  7  6  2  4 10  1
 
 ```{r,echo=TRUE,eval=TRUE}
+library(fastICA)
+expFile=system.file("extdata",
+                    "leukemiaExpressionSubset.rds",
+                    package="compGenomRData")
+
+mat=readRDS(expFile)
+
+annotation_col = data.frame(
+                    LeukemiaType =substr(colnames(mat),1,3))
+rownames(annotation_col)=colnames(mat)
 
 ica.res=fastICA(t(mat),n.comp=10)
 ica.rescopy=ica.res
@@ -264,6 +324,16 @@ which.max(errors)
     **Beginner**]
 When the perplexity is above 10, the separation is clear between the samples.
 ```{r,echo=TRUE,eval=TRUE}
+library(Rtsne)
+
+expFile=system.file("extdata",
+                    "leukemiaExpressionSubset.rds",
+                    package="compGenomRData")
+mat=readRDS(expFile)
+
+annotation_col = data.frame(
+                    LeukemiaType =substr(colnames(mat),1,3))
+rownames(annotation_col)=colnames(mat)
 
 annotation_col = data.frame(
   LeukemiaType =substr(colnames(mat),1,3))
@@ -272,17 +342,22 @@ tsne_out <- Rtsne(t(mat),perplexity = 1)
 plot(tsne_out$Y,col=as.factor(annotation_col$LeukemiaType),
      pch=19)
 
-tsne_out <- Rtsne(t(mat),perplexity = 5) 
+tsne_out <- Rtsne(t(mat),perplexity = 3) 
 plot(tsne_out$Y,col=as.factor(annotation_col$LeukemiaType),
      pch=19)
  
+tsne_out <- Rtsne(t(mat),perplexity = 5)
+plot(tsne_out$Y,col=as.factor(annotation_col$LeukemiaType),
+     pch=19)
+
 tsne_out <- Rtsne(t(mat),perplexity = 10)
 plot(tsne_out$Y,col=as.factor(annotation_col$LeukemiaType),
      pch=19)
-
-tsne_out <- Rtsne(t(mat),perplexity = 20)
+tsne_out <- Rtsne(t(mat),perplexity = 15)
 plot(tsne_out$Y,col=as.factor(annotation_col$LeukemiaType),
      pch=19)
-
+tsne_out <- Rtsne(t(mat),perplexity = 17)
+plot(tsne_out$Y,col=as.factor(annotation_col$LeukemiaType),
+     pch=19)
  
 ```
