@@ -1,0 +1,38 @@
+---
+title: "Week3-Exercises"
+author: "Irem YUCEL"
+date: "2022-10-08"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r}
+fileLGGexp=system.file("extdata",
+                      "LGGrnaseq.rds",
+                      package="compGenomRData")
+fileLGGann=system.file("extdata",
+                      "patient2LGGsubtypes.rds",
+                      package="compGenomRData")
+# gene expression values
+gexp=readRDS(fileLGGexp)
+head(gexp[,1:5])
+
+dim(gexp) 
+
+patient=readRDS(fileLGGann)
+head(patient)
+
+dim(patient)
+```
+
+```{r}
+boxplot(gexp[,1:50],outline=FALSE,col="cornflowerblue")
+
+par(mfrow=c(1,2))
+hist(gexp[,5],xlab="gene expression",main="",border="blue4",
+     col="cornflowerblue")
+hist(log10(gexp+1)[,5], xlab="gene expression log scale",main="",
+     border="blue4",col="cornflowerblue")
+```
+
